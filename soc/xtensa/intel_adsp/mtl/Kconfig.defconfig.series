@@ -1,0 +1,77 @@
+# Copyright (c) 2020 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+if SOC_SERIES_INTEL_MTL
+
+config SOC_SERIES
+	string
+	default "mtl"
+
+config SOC_TOOLCHAIN_NAME
+	string
+	default "intel_s1000"
+
+config SOC
+	string
+	default "intel_mtl"
+
+config IMR_MANIFEST_ADDR
+	default 0xa1042000
+
+config MP_NUM_CPUS
+	default 3
+
+config SMP
+       default y
+
+# MTL leaves the upper mapping in the same spot as cAVS, but moves the
+# lower one inexplicably.
+config XTENSA_UNCACHED_REGION
+	default 2
+
+# Parameters for gen_isr_tables.py:
+
+config MULTI_LEVEL_INTERRUPTS
+	default y
+config MAX_IRQ_PER_AGGREGATOR
+	default 29
+config 2ND_LVL_ISR_TBL_OFFSET
+        default 9
+config 2ND_LEVEL_INTERRUPTS
+	default y
+
+config XTENSA_TIMER
+	default n
+
+config XTENSA_TIMER_ID
+	default 0
+
+config MTL_TIMER
+	default y
+
+config SYS_CLOCK_HW_CYCLES_PER_SEC
+        default 400000000 if XTENSA_TIMER
+        default 24000000 if MTL_TIMER
+
+config SYS_CLOCK_TICKS_PER_SEC
+	default 50000
+
+config IRQ_OFFLOAD_INTNUM
+	default 0
+
+config DYNAMIC_INTERRUPTS
+	default y
+
+# To prevent test uses TEST_LOGGING_MINIMAL
+config TEST_LOGGING_DEFAULTS
+	default n
+	depends on TEST
+
+if LOG
+
+config LOG_BACKEND_ADSP
+	default y
+
+endif # LOG
+
+endif # SOC_SERIES_INTEL_MTL

@@ -1,0 +1,13 @@
+# Copyright (c) 2021 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+config SOC_SERIES_INTEL_MTL
+	bool "Intel MTL"
+	select SOC_FAMILY_INTEL_ADSP
+	select XTENSA
+	select XTENSA_HAL if "$(ZEPHYR_TOOLCHAIN_VARIANT)" != "xcc"
+	select ATOMIC_OPERATIONS_BUILTIN if "$(ZEPHYR_TOOLCHAIN_VARIANT)" != "xcc"
+	select ARCH_HAS_COHERENCE
+	select SCHED_IPI_SUPPORTED
+	help
+	  Intel MTL

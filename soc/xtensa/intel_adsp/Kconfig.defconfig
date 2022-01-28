@@ -28,3 +28,5 @@ config I2S_CAVS
 	depends on I2S
 
 endif # INTEL_ADSP_CAVS
+
+rsource "*/Kconfig.defconfig.series"
