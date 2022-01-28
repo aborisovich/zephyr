@@ -1,0 +1,57 @@
+version = [1, 8]
+
+[adsp]
+name = "acev10"
+image_size = "0x1B0000"
+
+[[adsp.mem_zone]]
+type = "ROM"
+base = "0x1FF80000"
+size = "0x00000800"
+[[adsp.mem_zone]]
+type = "IMR"
+base = "0xA1040000"
+size = "0x000A0000"
+[[adsp.mem_zone]]
+type = "HP-SRAM"
+base = "0xA00F0000"
+size = "0x001B0000"
+[[adsp.mem_zone]]
+type = "LP-SRAM"
+base = "0xA0000000"
+size = "0x00010000"
+
+[cse]
+partition_name = "ADSP"
+[[cse.entry]]
+name = "ADSP.man"
+offset = "0x5c"
+length = "0x458"
+[[cse.entry]]
+name = "ADSP"
+offset = "0x4b4"
+length = "0x48"
+[[cse.entry]]
+name = "ADSP.met"
+offset = "0x4fc"
+length = "0x0"  # calculated by rimage
+
+[css]
+
+[signed_pkg]
+name = "ADSP"
+[[signed_pkg.module]]
+name = "ADSP.met"
+
+[partition_info]
+name = "ADSP"
+[[partition_info.module]]
+name = "ADSP.met"
+
+[adsp_file]
+[[adsp_file.comp]]
+base_offset = "0x2000"
+
+[fw_desc.header]
+name = "ADSPFW"
+load_offset = "0x40000"

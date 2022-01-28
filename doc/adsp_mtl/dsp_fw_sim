@@ -1,0 +1,44 @@
+#!/bin/sh
+set -ex
+
+# Run a prebuilt dsp_fw_sim.  This tool was designed to be run from
+# its build directory, expects to have Xtensa SDK environment
+# variables set that match its build environment and not whatever the
+# caller might be using, and it links against libraries with a
+# hard-coded path.
+#
+# Extract the RUNPATH from the ELF binary (which we can find easily
+# because dsp_fw_sim is always run in its own directory), and turn
+# that back into version and install paths we can use to reconstruct
+# the correct SDK version.
+
+# This one is just hardcoded; no easy way to extract from the binary
+export XTENSA_CORE=ace10_LX7HiFi4
+
+XTLIBS=$(readelf -d sim_prebuilt/dsp_fw_sim  | fgrep RUNPATH \
+         | sed 's/.*\[//' | sed 's/\].*//' | sed 's/:/\n/g'  \
+         | fgrep '/XtDevTools/install/tools/' | head -1)
+VER=$(echo $XTLIBS | sed 's/.*\/XtDevTools\/install\/tools\///' | sed 's/\/.*//')
+TOOLS=$(echo $XTLIBS | sed "s/\/$VER\/.*//")
+
+# The user may have an existing Xtensa installation.  Check there
+# first before using the path from the binary.
+if [ ! -z "$XTENSA_TOOLS_DIR" ]; then
+    SDK=$(dirname "$XTENSA_TOOLS_DIR")
+elif [ ! -z "$XTENSA_BUILDS_DIR" ]; then
+    SDK=$(dirname "$XTENSA_BUILDS_DIR")
+fi
+if [ ! -z "$SDK" && -e "$SDK/XtDevTools/install/tools/$VER" ]; then
+    TOOLS="$SDK/XtDevTools/install/tools"
+fi
+
+export XTENSA_TOOLS_VERSION="$VER"
+export XTENSA_BUILDS_DIR=$(dirname "$TOOLS")/builds
+export LD_LIBRARY_PATH="$TOOLS/$VER/XtensaTools/lib64/iss:$LD_LIBRARY_PATH"
+export LD_LIBRARY_PATH="$TOOLS/$VER/XtensaTools/lib64:$LD_LIBRARY_PATH"
+
+# Path for our matching xt-gdb, echo this to get the info back to the wrapper
+echo "PREBUILT: xt-bin-path: $TOOLS/$VER/XtensaTools/bin"
+
+cd sim_prebuilt
+exec ./dsp_fw_sim "$@"
