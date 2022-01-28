@@ -1,0 +1,85 @@
+/*
+ * Copyright (c) 2022 Intel Corporation
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include <xtensa/xtensa.dtsi>
+#include <mem.h>
+
+/ {
+	cpus {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		cpu0: cpu@0 {
+			device_type = "cpu";
+			compatible = "cdns,tensilica-xtensa-lx7";
+			reg = <0>;
+		};
+
+		cpu1: cpu@1 {
+			device_type = "cpu";
+			compatible = "cdns,tensilica-xtensa-lx7";
+			reg = <1>;
+		};
+
+		cpu2: cpu@2 {
+			device_type = "cpu";
+			compatible = "cdns,tensilica-xtensa-lx7";
+			reg = <2>;
+		};
+	};
+
+	sram0: memory@a0020000 {
+		device_type = "memory";
+		compatible = "mmio-sram";
+		reg = <0xa0020000 DT_SIZE_K(2816)>;
+	};
+
+	sram1: memory@a0000000 {
+		device_type = "memory";
+		compatible = "mmio-sram";
+		reg = <0xa0000000 DT_SIZE_K(60)>;
+	};
+
+	soc {
+		core_intc: core_intc@0 {
+			compatible = "cdns,xtensa-core-intc";
+			reg = <0x00 0x400>;
+			interrupt-controller;
+			#interrupt-cells = <3>;
+		};
+
+		/* This is actually an array of per-core designware
+		 * controllers, but the special setup and extra
+		 * masking layer makes it easier for MTL to handle
+		 * this internally.
+		 */
+		ace_intc: ace_intc@7ac00  {
+			compatible = "intel,ace-intc";
+			reg = <0x7ac00 0xc00>;
+			interrupt-controller;
+			#interrupt-cells = <3>;
+			interrupts = <4 0 0>;
+			num-irqs = <28>;
+			interrupt-parent = <&core_intc>;
+			label = "ACE_0";
+		};
+
+		shim: shim@71f00 {
+			compatible = "intel,cavs-shim";
+			reg = <0x71f00 0x100>;
+		};
+
+		win: win@70200 {
+			compatible = "intel,cavs-win";
+			reg = <0x70200 0x30>;
+		};
+
+		tlb: tlb@17e000 {
+			compatible = "intel,adsp-tlb";
+			reg = <0x17e000 0x1000>;
+		};
+	};
+};

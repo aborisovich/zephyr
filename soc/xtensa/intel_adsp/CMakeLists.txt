@@ -5,3 +5,6 @@
 
 
 add_subdirectory(common)
+add_subdirectory(ace_v1x)
+add_subdirectory(${ZEPHYR_BASE}/soc/${ARCH}/${SOC_FAMILY} soc/family)
+zephyr_include_directories(${ZEPHYR_BASE}/soc/${ARCH}/${SOC_FAMILY}/common/include)
