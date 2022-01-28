@@ -1,0 +1,11 @@
+identifier: intel_adsp_ace15_mtpm
+name: MTL Audio DSP
+type: mcu
+arch: xtensa
+toolchain:
+  - zephyr
+  - xcc
+testing:
+  only_tags:
+     - kernel
+     - sof
