@@ -1,0 +1,10 @@
+identifier: intel_adsp_mtl
+name: MTL Audio DSP
+type: mcu
+arch: xtensa
+toolchain:
+  - zephyr
+testing:
+  only_tags:
+     - kernel
+     - sof
