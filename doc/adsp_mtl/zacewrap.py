@@ -210,6 +210,7 @@ async def main():
             sys.stdout.flush()
         await asyncio.sleep(0.2)
 
+
 zacedir = os.path.dirname(__file__) + "/"
 ap = argparse.ArgumentParser(description="Run ACE 1.x Simulator")
 ap.add_argument("-s", "--sim", default=zacedir + "dsp_fw_sim",
@@ -232,7 +233,16 @@ ap.add_argument("-d", "--start-halted", action="store_true",
                 help="Don't start cores automatically, use external gdb")
 ap.add_argument("-w", "--no-window-trace", action="store_true",
                 help="Don't read trace output from shared memory window")
+ap.add_argument("build_dir", nargs="?", help="build file path passing from west")
+
 args = ap.parse_args()
+
+# When zacewrap.py run by west flash, the argv[1] will be the build directory path.
+# In this case, we use it for getting where the zephyr.elf is.
+if args.build_dir:
+    args.image = args.build_dir + "/zephyr/zephyr.elf"
+else:
+    args.image = os.getenv('PWD') + "/" + args.image
 
 args.verb = 1
 if args.quiet:
@@ -243,7 +253,7 @@ if args.verbose:
 # Sign image if needed
 with open(args.image, "rb") as f:
     if f.read(4) == b'\x7fELF':
-        tmp_ri = "/tmp/zephyr.ri"
+        tmp_ri = args.image
         boot_mod = os.path.dirname(args.image) + "/boot.mod"
         main_mod = os.path.dirname(args.image) + "/main.mod"
         cmd = (args.rimage, "-k", args.key, "-o", tmp_ri, "-c", args.toml,
