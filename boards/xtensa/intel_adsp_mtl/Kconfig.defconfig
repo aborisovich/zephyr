@@ -8,3 +8,10 @@ config BOARD
 	default "intel_adsp_mtl"
 
 endif # BOARD_INTEL_ADSP_MTL
+
+if BOARD_INTEL_ADSP_MTL_SIM
+
+config BOARD
+	default "intel_adsp_mtl_sim"
+
+endif # BOARD_INTEL_ADSP_MTL_SIM
