@@ -154,7 +154,7 @@ def write_sim_cfg():
     state.cfgtmp = tempfile.NamedTemporaryFile()
     l = [f"[binaries]",
          f"bin_rom         = {args.rom}",
-         f"bin_fw          = {args.image}",
+         f"bin_fw          = {signed_image}",
          f"[parameters]",
          f"wall_clock_inc = 240",
          f"tick_period    = 10",
@@ -250,13 +250,16 @@ if args.quiet:
 if args.verbose:
     args.verb = 3
 
+image_dir = os.path.dirname(args.image)
+signed_image = os.path.join(image_dir, "zephyr.ri")
+
 # Sign image if needed
 with open(args.image, "rb") as f:
-    if f.read(4) == b'\x7fELF':
-        tmp_ri = args.image
-        boot_mod = os.path.dirname(args.image) + "/boot.mod"
-        main_mod = os.path.dirname(args.image) + "/main.mod"
-        cmd = (args.rimage, "-k", args.key, "-o", tmp_ri, "-c", args.toml,
+    if not os.path.exists(signed_image) and f.read(4) == b'\x7fELF':
+        log("Signing image with rimage...")
+        boot_mod = os.path.join(image_dir, "boot.mod")
+        main_mod = os.path.join(image_dir, "main.mod")
+        cmd = (args.rimage, "-k", args.key, "-o", signed_image, "-c", args.toml,
                "-i", "3", boot_mod, main_mod)
         cp = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         if cp.returncode != 0 or args.verbose:
@@ -264,6 +267,5 @@ with open(args.image, "rb") as f:
             print(cp.stdout.decode("utf-8"))
             if cp.returncode != 0:
                 sys.exit(0)
-        args.image = tmp_ri
 
 asyncio.run(main())
