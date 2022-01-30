@@ -134,7 +134,7 @@ async def sim_output(stream):
             sys.stdout.flush()
         m = re.match(r'PREBUILT: xt-bin-path: (.*)', s.rstrip())
         if m:
-            state.gdb = m.group(1) + "/xt-gdb"
+            state.gdb = os.path.join(m.group(1), "xt-gdb")
         m = re.match(r'NOTE\s+core(\d+)\s.*Debug info:.*port=(\d+)', s)
         if m:
             # Launch a background gdb to start the core
@@ -213,17 +213,17 @@ async def main():
 
 zacedir = os.path.dirname(__file__) + "/"
 ap = argparse.ArgumentParser(description="Run ACE 1.x Simulator")
-ap.add_argument("-s", "--sim", default=zacedir + "dsp_fw_sim",
+ap.add_argument("-s", "--sim", default=os.path.join(zacedir, "dsp_fw_sim"),
                 help="Path to built simulator binary")
-ap.add_argument("-m", "--rimage", default=zacedir + "rimage",
+ap.add_argument("-m", "--rimage", default=os.path.join(zacedir, "rimage"),
                 help="Path to built rimage binary")
 ap.add_argument("-i", "--image", default="./build/zephyr/zephyr.elf",
                 help="Path to zephyr.elf (in its build directory!) or zephyr.ri")
-ap.add_argument("-r", "--rom", default=zacedir + "dsp_rom_mtl_sim.hex",
+ap.add_argument("-r", "--rom", default=os.path.join(zacedir, "dsp_rom_mtl_sim.hex"),
                 help="Path to built ROM binary")
-ap.add_argument("-t", "--toml", default=zacedir + "ace10.toml",
+ap.add_argument("-t", "--toml", default=os.path.join(zacedir, "ace10.toml"),
                 help="Rimage TOML configuration file")
-ap.add_argument("-k", "--key", default=zacedir + "dummy-key.pem",
+ap.add_argument("-k", "--key", default=os.path.join(zacedir, "dummy-key.pem"),
                 help="Path to PEM key for rimage signing")
 ap.add_argument("-v", "--verbose", action="store_true",
                 help="Display extra simulator output")
@@ -240,9 +240,9 @@ args = ap.parse_args()
 # When zacewrap.py run by west flash, the argv[1] will be the build directory path.
 # In this case, we use it for getting where the zephyr.elf is.
 if args.build_dir:
-    args.image = args.build_dir + "/zephyr/zephyr.elf"
+    args.image = os.path.join(args.build_dir, "zephyr", "zephyr.elf")
 else:
-    args.image = os.getenv('PWD') + "/" + args.image
+    args.image = os.path.join(os.getenv('PWD'), args.image)
 
 args.verb = 1
 if args.quiet:
