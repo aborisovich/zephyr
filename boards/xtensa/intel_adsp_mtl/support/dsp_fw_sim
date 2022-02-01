@@ -28,8 +28,14 @@ if [ ! -z "$XTENSA_TOOLS_DIR" ]; then
 elif [ ! -z "$XTENSA_BUILDS_DIR" ]; then
     SDK=$(dirname "$XTENSA_BUILDS_DIR")
 fi
-if [ ! -z "$SDK" && -e "$SDK/XtDevTools/install/tools/$VER" ]; then
+if [ ! -z "$SDK" -a -e "$SDK/XtDevTools/install/tools/$VER" ]; then
     TOOLS="$SDK/XtDevTools/install/tools"
+fi
+
+
+# if we have a toolchain used for building Zephyr.
+if [ -n "$XTENSA_TOOLCHAIN_PATH"  -a -e "$XTENSA_TOOLCHAIN_PATH/$VER" ]; then
+    TOOLS=$XTENSA_TOOLCHAIN_PATH
 fi
 
 export XTENSA_TOOLS_VERSION="$VER"
