@@ -5,13 +5,13 @@
 if BOARD_INTEL_ADSP_MTL
 
 config BOARD
-	default "intel_adsp_mtl"
+	default "intel_adsp_ace15_mtpm"
 
 endif # BOARD_INTEL_ADSP_MTL
 
 if BOARD_INTEL_ADSP_MTL_SIM
 
 config BOARD
-	default "intel_adsp_mtl_sim"
+	default "intel_adsp_ace15_mtpm_sim"
 
 endif # BOARD_INTEL_ADSP_MTL_SIM
