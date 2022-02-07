@@ -1,7 +1,7 @@
 # Copyright (c) 2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-config SOC_SERIES_INTEL_MTL
+config SOC_SERIES_INTEL_ACE1X
 	bool "Intel MTL"
 	select SOC_FAMILY_INTEL_ADSP
 	select XTENSA

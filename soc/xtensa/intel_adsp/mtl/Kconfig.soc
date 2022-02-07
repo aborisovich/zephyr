@@ -6,6 +6,6 @@ choice
 
 	config SOC_INTEL_MTL
 		bool "Meteor Lake SoC"
-		depends on SOC_SERIES_INTEL_MTL
+		depends on SOC_SERIES_INTEL_ACE15
 
 endchoice

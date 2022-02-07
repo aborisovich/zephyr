@@ -5,9 +5,9 @@
 
 config  BOARD_INTEL_ADSP_MTL
 	bool "Intel ADSP MTL"
-	depends on SOC_SERIES_INTEL_MTL
+	depends on SOC_SERIES_INTEL_ACE1X
 
 
 config  BOARD_INTEL_ADSP_MTL_SIM
 	bool "Intel ADSP MTL"
-	depends on SOC_SERIES_INTEL_MTL
+	depends on SOC_SERIES_INTEL_ACE1X
