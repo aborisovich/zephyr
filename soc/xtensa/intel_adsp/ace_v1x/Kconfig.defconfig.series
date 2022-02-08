@@ -5,7 +5,7 @@ if SOC_SERIES_INTEL_ACE1X
 
 config SOC_SERIES
 	string
-	default "mtl"
+	default "ace_v1x"
 
 config SOC_TOOLCHAIN_NAME
 	string
