@@ -149,7 +149,7 @@ async def sim_output(stream):
                     stdout=asyncio.subprocess.PIPE,
                     stderr=asyncio.subprocess.PIPE)
 
-def write_sim_cfg():
+def write_sim_cfg(signed_image):
     params = os.path.dirname(args.sim)
     state.cfgtmp = tempfile.NamedTemporaryFile()
     l = [f"[binaries]",
@@ -167,7 +167,7 @@ def write_sim_cfg():
     state.cfgtmp.file.flush()
     return state.cfgtmp.name
 
-async def main():
+async def _main(signed_image):
     # Open up a server socket to which the simulator will connect
     state.hello_event = asyncio.Event()
     svr = await asyncio.start_server(sim_connection, port=PORT)
@@ -180,11 +180,16 @@ async def main():
     # created for core N, leaving it halted (I haven't found a way to
     # Just Start the Cores, the gdb code is in the xtensa libraries
     # and we don't have source or docs)
-    cfg = write_sim_cfg()
+    cfg = write_sim_cfg(signed_image)
     cmd = (f"cd '{os.path.dirname(args.sim)}'; " +
            " ".join((args.sim, "--platform=mtl",
-                     f"--config={cfg}", f"--comm_port={PORT}", "--xtsc.turbo=true",
-                     "--xxdebug=0", "--xxdebug=1", "--xxdebug=2")))
+                     f"--config={cfg}",
+                     f"--comm_port={PORT}",
+                     "--xtsc.turbo=true",
+                     "--xxdebug=0",
+                     "--xxdebug=1",
+                     "--xxdebug=2"
+                     )))
     sim = await asyncio.create_subprocess_shell(cmd,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE)
@@ -211,61 +216,73 @@ async def main():
         await asyncio.sleep(0.2)
 
 
-zacedir = os.path.dirname(__file__) + "/"
-ap = argparse.ArgumentParser(description="Run ACE 1.x Simulator")
-ap.add_argument("-s", "--sim", default=os.path.join(zacedir, "dsp_fw_sim"),
-                help="Path to built simulator binary")
-ap.add_argument("-m", "--rimage", default=os.path.join(zacedir, "rimage"),
-                help="Path to built rimage binary")
-ap.add_argument("-i", "--image", default="./build/zephyr/zephyr.elf",
-                help="Path to zephyr.elf (in its build directory!) or zephyr.ri")
-ap.add_argument("-r", "--rom", default=os.path.join(zacedir, "dsp_rom_mtl_sim.hex"),
-                help="Path to built ROM binary")
-ap.add_argument("-t", "--toml", default=os.path.join(zacedir, "ace10.toml"),
-                help="Rimage TOML configuration file")
-ap.add_argument("-k", "--key", default=os.path.join(zacedir, "dummy-key.pem"),
-                help="Path to PEM key for rimage signing")
-ap.add_argument("-v", "--verbose", action="store_true",
-                help="Display extra simulator output")
-ap.add_argument("-q", "--quiet", action="store_true",
-                help="Suppress all simulator logging, show only Zephyr output")
-ap.add_argument("-d", "--start-halted", action="store_true",
-                help="Don't start cores automatically, use external gdb")
-ap.add_argument("-w", "--no-window-trace", action="store_true",
-                help="Don't read trace output from shared memory window")
-ap.add_argument("build_dir", nargs="?", help="build file path passing from west")
 
-args = ap.parse_args()
+def main():
+    global args
 
-# When zacewrap.py run by west flash, the argv[1] will be the build directory path.
-# In this case, we use it for getting where the zephyr.elf is.
-if args.build_dir:
-    args.image = os.path.join(args.build_dir, "zephyr", "zephyr.elf")
-else:
-    args.image = os.path.join(os.getenv('PWD'), args.image)
+    zacedir = os.path.dirname(__file__) + "/"
+    ap = argparse.ArgumentParser(description="Run ACE 1.x Simulator")
+    ap.add_argument("-s", "--sim", default=os.path.join(zacedir, "dsp_fw_sim"),
+		    help="Path to built simulator binary")
+    ap.add_argument("-m", "--rimage", default=os.path.join(zacedir, "rimage"),
+		    help="Path to built rimage binary")
+    ap.add_argument("-i", "--image", default="./build/zephyr/zephyr.elf",
+		    help="Path to zephyr.elf (in its build directory!) or zephyr.ri")
+    ap.add_argument("-r", "--rom", default=os.path.join(zacedir, "dsp_rom_mtl_sim.hex"),
+		    help="Path to built ROM binary")
+    ap.add_argument("-t", "--toml", default=os.path.join(zacedir, "ace10.toml"),
+		    help="Rimage TOML configuration file")
+    ap.add_argument("-k", "--key", default=os.path.join(zacedir, "dummy-key.pem"),
+		    help="Path to PEM key for rimage signing")
+    ap.add_argument("-v", "--verbose", action="store_true",
+		    help="Display extra simulator output")
+    ap.add_argument("-q", "--quiet", action="store_true",
+		    help="Suppress all simulator logging, show only Zephyr output")
+    ap.add_argument("-d", "--start-halted", action="store_true",
+		    help="Don't start cores automatically, use external gdb")
+    ap.add_argument("-w", "--no-window-trace", action="store_true",
+		    help="Don't read trace output from shared memory window")
+    ap.add_argument("build_dir", nargs="?", help="build file path passing from west")
 
-args.verb = 1
-if args.quiet:
-    args.verb = 0
-if args.verbose:
-    args.verb = 3
+    args = ap.parse_args()
 
-image_dir = os.path.dirname(args.image)
-signed_image = os.path.join(image_dir, "zephyr.ri")
+    # When zacewrap.py run by west flash, the argv[1] will be the build directory path.
+    # In this case, we use it for getting where the zephyr.elf is.
+    if args.build_dir:
+        args.image = os.path.join(args.build_dir, "zephyr", "zephyr.elf")
+    else:
+        args.image = os.path.join(os.getenv('PWD'), args.image)
 
-# Sign image if needed
-with open(args.image, "rb") as f:
-    if not os.path.exists(signed_image) and f.read(4) == b'\x7fELF':
-        log("Signing image with rimage...")
-        boot_mod = os.path.join(image_dir, "boot.mod")
-        main_mod = os.path.join(image_dir, "main.mod")
-        cmd = (args.rimage, "-k", args.key, "-o", signed_image, "-c", args.toml,
-               "-i", "3", boot_mod, main_mod)
-        cp = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        if cp.returncode != 0 or args.verbose:
-            print(" ".join(cmd))
-            print(cp.stdout.decode("utf-8"))
-            if cp.returncode != 0:
-                sys.exit(0)
+    args.verb = 1
+    if args.quiet:
+        args.verb = 0
+    if args.verbose:
+        args.verb = 3
 
-asyncio.run(main())
+    image_dir = os.path.dirname(args.image)
+    signed_image = os.path.join(image_dir, "zephyr.ri")
+
+    # Sign image if needed
+    with open(args.image, "rb") as f:
+        if not os.path.exists(signed_image) and f.read(4) == b'\x7fELF':
+            log("Signing image with rimage...")
+            boot_mod = os.path.join(image_dir, "boot.mod")
+            main_mod = os.path.join(image_dir, "main.mod")
+            cmd = (args.rimage, "-k", args.key, "-o", signed_image, "-c", args.toml,
+                    "-i", "3", boot_mod, main_mod)
+            cp = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            if cp.returncode != 0 or args.verbose:
+                print(" ".join(cmd))
+                print(cp.stdout.decode("utf-8"))
+                if cp.returncode != 0:
+                    sys.exit(0)
+
+    asyncio.run(_main(signed_image))
+
+if __name__ == "__main__":
+    try:
+        main()
+    finally:
+        if (os.name != "nt") and os.isatty(1):
+            # (OS is not Windows) and (stdout is interactive)
+            os.system("stty sane")
