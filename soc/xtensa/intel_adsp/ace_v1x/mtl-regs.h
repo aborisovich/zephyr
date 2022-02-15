@@ -4,6 +4,7 @@
 #ifndef _ZEPHYR_SOC_INTEL_ADSP_MTL_REGS_H_
 #define _ZEPHYR_SOC_INTEL_ADSP_MTL_REGS_H_
 
+#include <stdint.h>
 #include <xtensa/config/core-isa.h>
 
 /* Core power and boot control block */
