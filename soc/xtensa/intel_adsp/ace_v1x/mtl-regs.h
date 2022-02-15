@@ -201,4 +201,43 @@ struct mtl_dwint {
 
 #define MTL_DWINT_IRQ DT_IRQN(DT_NODELABEL(mtl_dwint))
 
+/* L2 Local Memory Management */
+struct mtl_l2mm {
+	uint32_t l2mcap;
+	uint32_t l2mpat;
+	uint32_t l2mecap;
+	uint32_t l2mecs;
+	uint32_t l2hsbpmptr;
+	uint32_t l2usbpmptr;
+	uint32_t l2usbmrpptr;
+	uint32_t l2ucmrpptr;
+	uint32_t l2ucmrpdptr;
+};
+
+#define MTL_L2MM ((volatile struct mtl_l2mm *)0x71d00)
+
+/* DfL2MCAP */
+struct mtl_l2mcap {
+	uint32_t l2hss  : 8;
+	uint32_t l2uss  : 4;
+	uint32_t l2hsbs : 4;
+	uint32_t l2hs2s : 8;
+	uint32_t l2usbs : 5;
+	uint32_t l2se   : 1;
+	uint32_t el2se  : 1;
+	uint32_t rsvd32 : 1;
+};
+
+#define MTL_L2MCAP ((volatile struct mtl_l2mcap *)0x71d00)
+
+static inline uint32_t mtl_hpsram_get_bank_count()
+{
+    return MTL_L2MCAP->l2hss;
+}
+
+static inline uint32_t mtl_lpsram_get_bank_count()
+{
+    return MTL_L2MCAP->l2uss;
+}
+
 #endif /* _ZEPHYR_SOC_INTEL_ADSP_MTL_REGS_H_ */
