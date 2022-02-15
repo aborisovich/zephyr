@@ -48,3 +48,4 @@ echo "PREBUILT: xt-bin-path: $TOOLS/$VER/XtensaTools/bin"
 
 cd sim_prebuilt
 exec ./dsp_fw_sim "$@"
+stty sane
