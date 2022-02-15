@@ -6,7 +6,7 @@
 
 /dts-v1/;
 
-#include <intel/intel_mtl.dtsi>
+#include <intel/intel_adsp_ace15_mtpm.dtsi>
 
 / {
 	model = "intel_adsp_ace15_mtpm";
