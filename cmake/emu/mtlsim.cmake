@@ -4,7 +4,7 @@ find_program(
   MTLSIM
   mtlsim
   )
-set(MTLSIM ${BOARD_DIR}/support/zacewrap.py)
+set(MTLSIM ${BOARD_DIR}/support/mtlsim.py)
 
 set(MTLSIM_FLAGS
 	--rom ${BOARD_DIR}/support/dsp_rom_mtl_sim.hex

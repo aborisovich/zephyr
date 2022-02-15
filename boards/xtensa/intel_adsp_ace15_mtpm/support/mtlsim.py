@@ -220,20 +220,15 @@ async def _main(signed_image):
 def main():
     global args
 
-    zacedir = os.path.dirname(__file__) + "/"
     ap = argparse.ArgumentParser(description="Run ACE 1.x Simulator")
-    ap.add_argument("-s", "--sim", default=os.path.join(zacedir, "dsp_fw_sim"),
+    ap.add_argument("-s", "--sim",
 		    help="Path to built simulator binary")
-    ap.add_argument("-m", "--rimage", default=os.path.join(zacedir, "rimage"),
+    ap.add_argument("-m", "--rimage",
 		    help="Path to built rimage binary")
-    ap.add_argument("-i", "--image", default="./build/zephyr/zephyr.elf",
-		    help="Path to zephyr.elf (in its build directory!) or zephyr.ri")
-    ap.add_argument("-r", "--rom", default=os.path.join(zacedir, "dsp_rom_mtl_sim.hex"),
+    ap.add_argument("-i", "--image",
+		    help="Path to zephyr.ri")
+    ap.add_argument("-r", "--rom",
 		    help="Path to built ROM binary")
-    ap.add_argument("-t", "--toml", default=os.path.join(zacedir, "ace10.toml"),
-		    help="Rimage TOML configuration file")
-    ap.add_argument("-k", "--key", default=os.path.join(zacedir, "dummy-key.pem"),
-		    help="Path to PEM key for rimage signing")
     ap.add_argument("-v", "--verbose", action="store_true",
 		    help="Display extra simulator output")
     ap.add_argument("-q", "--quiet", action="store_true",
@@ -242,42 +237,14 @@ def main():
 		    help="Don't start cores automatically, use external gdb")
     ap.add_argument("-w", "--no-window-trace", action="store_true",
 		    help="Don't read trace output from shared memory window")
-    ap.add_argument("build_dir", nargs="?", help="build file path passing from west")
-
     args = ap.parse_args()
-
-    # When zacewrap.py run by west flash, the argv[1] will be the build directory path.
-    # In this case, we use it for getting where the zephyr.elf is.
-    if args.build_dir:
-        args.image = os.path.join(args.build_dir, "zephyr", "zephyr.elf")
-    else:
-        args.image = os.path.join(os.getenv('PWD'), args.image)
-
     args.verb = 1
     if args.quiet:
         args.verb = 0
     if args.verbose:
         args.verb = 3
 
-    image_dir = os.path.dirname(args.image)
-    signed_image = os.path.join(image_dir, "zephyr.ri")
-
-    # Sign image if needed
-    with open(args.image, "rb") as f:
-        if not os.path.exists(signed_image) and f.read(4) == b'\x7fELF':
-            log("Signing image with rimage...")
-            boot_mod = os.path.join(image_dir, "boot.mod")
-            main_mod = os.path.join(image_dir, "main.mod")
-            cmd = (args.rimage, "-k", args.key, "-o", signed_image, "-c", args.toml,
-                    "-i", "3", boot_mod, main_mod)
-            cp = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-            if cp.returncode != 0 or args.verbose:
-                print(" ".join(cmd))
-                print(cp.stdout.decode("utf-8"))
-                if cp.returncode != 0:
-                    sys.exit(0)
-
-    asyncio.run(_main(signed_image))
+    asyncio.run(_main(args.rimage))
 
 if __name__ == "__main__":
     try:
