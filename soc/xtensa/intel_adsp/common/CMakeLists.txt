@@ -100,3 +100,5 @@ add_custom_target(
       ${CMAKE_BINARY_DIR}/zephyr/main.mod
       ${CMAKE_BINARY_DIR}/zephyr/main.mod 2>${NULL_FILE}
 )
+
+add_subdirectory(ace)
