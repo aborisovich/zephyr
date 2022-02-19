@@ -163,14 +163,14 @@ __imr void parse_manifest(void)
  */
 static __imr void hp_sram_pm_banks()
 {
-#ifndef BOARD_INTEL_ADSP_ACE15_MTPM_SIM
+#ifndef CONFIG_BOARD_INTEL_ADSP_ACE15_MTPM_SIM
 	uint32_t hpsram_ebb_quantity = mtl_hpsram_get_bank_count();
 	volatile uint32_t * l2hsbpmptr = (volatile uint32_t *)MTL_L2MM->l2hsbpmptr;
 	for (uint32_t inx = 0; inx < hpsram_ebb_quantity; ++inx)
 	{
 		*(l2hsbpmptr + inx * 2) = 0;
 	}
-#endif /* BOARD_INTEL_ADSP_ACE15_MTPM_SIM */
+#endif /* CONFIG_BOARD_INTEL_ADSP_ACE15_MTPM_SIM */
 }
 
 __imr void hp_sram_init(uint32_t memory_size)
@@ -180,12 +180,14 @@ __imr void hp_sram_init(uint32_t memory_size)
 
 __imr void lp_sram_init(void)
 {
+#ifndef CONFIG_BOARD_INTEL_ADSP_ACE15_MTPM_SIM
 	uint32_t lpsram_ebb_quantity = mtl_lpsram_get_bank_count();
 	volatile uint32_t * l2usbpmptr = (volatile uint32_t *)MTL_L2MM->l2usbpmptr;
 	for (uint32_t inx = 0; inx < lpsram_ebb_quantity; ++inx)
 	{
 		*(l2usbpmptr + inx * 2) = 0;
 	}
+#endif
 }
 
 __imr void win_setup(void)
