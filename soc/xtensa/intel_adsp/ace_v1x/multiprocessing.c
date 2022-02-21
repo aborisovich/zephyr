@@ -38,6 +38,9 @@ void soc_mp_init(void)
 		/* Agent A should signal only BUSY interrupts */
 		MTL_P2P_IPC[i].agents[0].ipc.ctl = BIT(0); /* IPCTBIE */
 	}
+
+	/* Set the core 0 active */
+	soc_cpus_active[0] = true;
 }
 
 void soc_start_core(int cpu_num)
