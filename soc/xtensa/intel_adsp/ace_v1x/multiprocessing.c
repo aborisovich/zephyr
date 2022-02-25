@@ -8,6 +8,7 @@
 #include <soc.h>
 #include <ace_v1x-regs.h>
 #include <cavs-ipc-regs.h>
+#include <cavs-mem.h>
 
 static ALWAYS_INLINE uint32_t processor_id_reg(void)
 {
@@ -51,6 +52,18 @@ void soc_mp_init(void)
 
 void soc_start_core(int cpu_num)
 {
+#ifndef CONFIG_BOARD_INTEL_ADSP_ACE15_MTPM_SIM
+	if (cpu_num > 0) {
+		/* Initialize the ROM jump address */
+		uint32_t* rom_jump_vector = (uint32_t *) ROM_JUMP_ADDR;
+		*rom_jump_vector = (uint32_t) z_soc_mp_asm_entry;
+		z_xtensa_cache_flush(rom_jump_vector, sizeof(*rom_jump_vector));
+
+		/* Tell the ACE ROM that it should use secondary core flow */
+		MTL_PWRBOOT.bootctl[cpu_num].battr |= MTL_PWRBOOT_BATTR_LPSCTL_BATTR_SLAVE_CORE;
+	}
+#endif
+
 	MTL_PWRBOOT.capctl[cpu_num].ctl |= MTL_PWRBOOT_CTL_SPA;
 }
 
