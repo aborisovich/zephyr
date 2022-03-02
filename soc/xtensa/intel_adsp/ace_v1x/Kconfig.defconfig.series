@@ -58,9 +58,6 @@ config SYS_CLOCK_TICKS_PER_SEC
         default 1000 if MTL_TIMER && BOARD_INTEL_ADSP_ACE15_MTPM_SIM
 	default 50000
 
-config IRQ_OFFLOAD_INTNUM
-	default 0
-
 config DYNAMIC_INTERRUPTS
 	default y
 
