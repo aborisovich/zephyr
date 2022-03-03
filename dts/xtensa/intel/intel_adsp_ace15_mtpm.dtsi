@@ -56,14 +56,15 @@
                  * masking layer makes it easier for MTL to handle
                  * this internally.
                  */
-		mtl_dwint: mtl_dwint@7ac00  {
-                        compatible = "intel,mtl-dwint";
+		ace_intc: ace_intc@7ac00  {
+                        compatible = "intel,ace-intc";
                         reg = <0x7ac00 0xc00>;
                         interrupt-controller;
                         #interrupt-cells = <3>;
                         interrupts = <4 0 0>;
                         num-irqs = <28>;
                         interrupt-parent = <&core_intc>;
+                        label = "ACE_0";
                 };
 
 		shim: shim@71f00 {
