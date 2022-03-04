@@ -167,9 +167,9 @@ struct mtl_dint {
  * as instantiated (there are only 28 sources), the high 32 bit
  * registers don't exist and aren't named here.  Access via e.g.:
  *
- *     MTL_DWINT[core_id].inten |= interrupt_bit;
+ *     ACE_INTC[core_id].inten |= interrupt_bit;
  */
-struct mtl_dwint {
+struct ace_intc {
 	uint32_t inten;
 	uint32_t unused0;
 	uint32_t intmask;
@@ -198,9 +198,9 @@ struct mtl_dwint {
 	uint32_t unused9[199];
 };
 
-#define MTL_DWINT ((volatile struct mtl_dwint *)DT_REG_ADDR(DT_NODELABEL(ace_intc)))
+#define ACE_INTC ((volatile struct ace_intc *)DT_REG_ADDR(DT_NODELABEL(ace_intc)))
 
-#define MTL_DWINT_IRQ DT_IRQN(DT_NODELABEL(ace_intc))
+#define ACE_INTC_IRQ DT_IRQN(DT_NODELABEL(ace_intc))
 
 /* L2 Local Memory Management */
 struct mtl_l2mm {

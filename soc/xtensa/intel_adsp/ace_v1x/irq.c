@@ -56,7 +56,7 @@ void z_soc_irq_enable(uint32_t irq)
 {
 	if (IS_DW(irq)) {
 		for (int i = 0; i < CONFIG_MP_NUM_CPUS; i++) {
-			MTL_DWINT[i].inten |= BIT(MTL_IRQ_FROM_ZEPHYR(irq));
+			ACE_INTC[i].inten |= BIT(MTL_IRQ_FROM_ZEPHYR(irq));
 		}
 	} else {
 		z_xtensa_irq_enable(irq);
@@ -67,7 +67,7 @@ void z_soc_irq_disable(uint32_t irq)
 {
 	if (IS_DW(irq)) {
 		for (int i = 0; i < CONFIG_MP_NUM_CPUS; i++) {
-			MTL_DWINT[i].inten &= ~BIT(MTL_IRQ_FROM_ZEPHYR(irq));
+			ACE_INTC[i].inten &= ~BIT(MTL_IRQ_FROM_ZEPHYR(irq));
 		}
 	} else {
 		z_xtensa_irq_disable(irq);
@@ -77,7 +77,7 @@ void z_soc_irq_disable(uint32_t irq)
 int z_soc_irq_is_enabled(unsigned int irq)
 {
 	if (IS_DW(irq)) {
-		return MTL_DWINT[0].inten & BIT(MTL_IRQ_FROM_ZEPHYR(irq));
+		return ACE_INTC[0].inten & BIT(MTL_IRQ_FROM_ZEPHYR(irq));
 	} else {
 		return z_xtensa_irq_is_enabled(irq);
 	}
@@ -108,7 +108,7 @@ static ALWAYS_INLINE uint32_t prid(void)
 
 static void dwint_isr(const void *arg)
 {
-	uint32_t fs = MTL_DWINT[prid()].finalstatus;
+	uint32_t fs = ACE_INTC[prid()].finalstatus;
 
 	while (fs) {
 		uint32_t bit = find_lsb_set(fs) - 1;
@@ -121,6 +121,6 @@ static void dwint_isr(const void *arg)
 
 void z_soc_irq_init(void)
 {
-	IRQ_CONNECT(MTL_DWINT_IRQ, 0, dwint_isr, 0, 0);
-	z_xtensa_irq_enable(MTL_DWINT_IRQ);
+	IRQ_CONNECT(ACE_INTC_IRQ, 0, dwint_isr, 0, 0);
+	z_xtensa_irq_enable(ACE_INTC_IRQ);
 }

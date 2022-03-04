@@ -51,7 +51,7 @@ void soc_start_core(int cpu_num)
 void soc_mp_startup(uint32_t cpu)
 {
 	/* Must have this enabled always */
-	z_xtensa_irq_enable(MTL_DWINT_IRQ);
+	z_xtensa_irq_enable(ACE_INTC_IRQ);
 
 	/* Prevent idle from powering us off */
 	MTL_PWRBOOT.bootctl[cpu].bctl |=
