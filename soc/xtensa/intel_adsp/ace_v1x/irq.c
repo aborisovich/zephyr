@@ -1,6 +1,9 @@
- /* Copyright (c) 2021 Intel Corporation
-  * SPDX-License-Identifier: Apache-2.0
-  */
+/*
+ * Copyright (c) 2021 Intel Corporation
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #include <device.h>
 #include <devicetree.h>
 #include <irq_nextlevel.h>
@@ -98,7 +101,7 @@ int z_soc_irq_connect_dynamic(unsigned int irq, unsigned int priority,
 }
 #endif
 
-static ALWAYS_INLINE uint32_t prid(void)
+static ALWAYS_INLINE uint32_t processor_id_reg(void)
 {
 	uint32_t prid;
 
@@ -108,7 +111,7 @@ static ALWAYS_INLINE uint32_t prid(void)
 
 static void dwint_isr(const void *arg)
 {
-	uint32_t fs = ACE_INTC[prid()].finalstatus;
+	uint32_t fs = ACE_INTC[processor_id_reg()].finalstatus;
 
 	while (fs) {
 		uint32_t bit = find_lsb_set(fs) - 1;

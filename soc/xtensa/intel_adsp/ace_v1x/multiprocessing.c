@@ -1,9 +1,15 @@
+/*
+ * Copyright (c) 2021 Intel Corporation
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #include <zephyr.h>
 #include <soc.h>
 #include <ace_v1x-regs.h>
 #include <cavs-ipc-regs.h>
 
-static ALWAYS_INLINE uint32_t prid(void)
+static ALWAYS_INLINE uint32_t processor_id_reg(void)
 {
 	uint32_t prid;
 
@@ -13,7 +19,7 @@ static ALWAYS_INLINE uint32_t prid(void)
 
 static void ipc_isr(void *arg)
 {
-	MTL_P2P_IPC[prid()].agents[0].ipc.tdr = BIT(31); /* clear BUSY bit */
+	MTL_P2P_IPC[processor_id_reg()].agents[0].ipc.tdr = BIT(31); /* clear BUSY bit */
 #ifdef CONFIG_SMP
 	void z_sched_ipi(void);
 	z_sched_ipi();
@@ -60,7 +66,7 @@ void soc_mp_startup(uint32_t cpu)
 
 void arch_sched_ipi(void)
 {
-	uint32_t curr = prid();
+	uint32_t curr = processor_id_reg();
 
 	/* Signal agent B[n] to cause an interrupt from agent A[n] */
 	for (int core = 0; core < CONFIG_MP_NUM_CPUS; core++) {
