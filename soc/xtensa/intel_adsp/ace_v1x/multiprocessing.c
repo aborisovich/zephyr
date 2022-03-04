@@ -10,6 +10,9 @@
 #include <cavs-ipc-regs.h>
 #include <cavs-mem.h>
 
+#define START_CORE_CHECK_NUM 32
+#define START_CORE_CHECK_DELAY 256
+
 static ALWAYS_INLINE uint32_t processor_id_reg(void)
 {
 	uint32_t prid;
@@ -53,6 +56,7 @@ void soc_mp_init(void)
 void soc_start_core(int cpu_num)
 {
 #ifndef CONFIG_BOARD_INTEL_ADSP_ACE15_MTPM_SIM
+	int retry = START_CORE_CHECK_NUM;
 	if (cpu_num > 0) {
 		/* Initialize the ROM jump address */
 		uint32_t* rom_jump_vector = (uint32_t *) ROM_JUMP_ADDR;
@@ -65,6 +69,17 @@ void soc_start_core(int cpu_num)
 #endif
 
 	MTL_PWRBOOT.capctl[cpu_num].ctl |= MTL_PWRBOOT_CTL_SPA;
+
+#ifndef CONFIG_BOARD_INTEL_ADSP_ACE15_MTPM_SIM
+	/* Waiting for power up */
+	while (~(MTL_PWRBOOT.capctl[cpu_num].ctl & MTL_PWRBOOT_CTL_CPA) && --retry) {
+		 k_busy_wait(START_CORE_CHECK_DELAY);
+	}
+
+	if(!retry) {
+		__ASSERT(false, "soc_start_core() secondary core has not powered up");
+	}
+#endif
 }
 
 void soc_mp_startup(uint32_t cpu)
