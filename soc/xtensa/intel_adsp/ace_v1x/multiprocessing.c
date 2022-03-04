@@ -1,6 +1,6 @@
 #include <zephyr.h>
 #include <soc.h>
-#include <mtl-regs.h>
+#include <ace_v1x-regs.h>
 #include <cavs-ipc-regs.h>
 
 static ALWAYS_INLINE uint32_t prid(void)

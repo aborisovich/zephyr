@@ -8,7 +8,7 @@
 #include <sw_isr_table.h>
 #endif
 #include <soc.h>
-#include <mtl-regs.h>
+#include <ace_v1x-regs.h>
 
 /* MTL device interrupts are all packed into a single line on Xtensa's
  * architectural IRQ 4 (see below), run by a Designware interrupt

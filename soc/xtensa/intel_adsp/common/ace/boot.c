@@ -11,7 +11,7 @@
 #include <cavs-mem.h>
 #include <cpu_init.h>
 #include "manifest.h"
-#include <mtl-regs.h>
+#include <ace_v1x-regs.h>
 
 /* Important note about linkage:
  *
