@@ -43,6 +43,20 @@
 		reg = <0xa0000000 DT_SIZE_K(60)>;
 	};
 
+	reserverd_mem: reserved-memory {
+		compatible = "reserved-memory";
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges;
+
+		IMR1: ddr-memory@A1000000 {
+			compatible = "intel,adsp-imr";
+			label = "IMR1";
+			reg = <0xA1000000 DT_SIZE_M(16)>;
+			block-size = <0x1000>;
+		};
+	};
+
 	soc {
 		core_intc: core_intc@0 {
 			compatible = "cdns,xtensa-core-intc";
