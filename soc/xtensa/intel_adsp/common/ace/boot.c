@@ -165,8 +165,16 @@ static __imr void hp_sram_pm_banks(void)
 {
 	uint32_t hpsram_ebb_quantity = mtl_hpsram_get_bank_count();
 	volatile uint32_t *l2hsbpmptr = (volatile uint32_t *)MTL_L2MM->l2hsbpmptr;
-	for (uint32_t inx = 0; inx < hpsram_ebb_quantity; ++inx) {
+	volatile uint8_t *status = (volatile uint8_t *)l2hsbpmptr + 4;
+	int inx, delay_count = 256;
+
+	for (inx = 0; inx < hpsram_ebb_quantity; ++inx) {
 		*(l2hsbpmptr + inx * 2) = 0;
+	}
+	for (inx = 0; inx < hpsram_ebb_quantity; ++inx) {
+		while (*(status + inx * 8) != 0) {
+			idelay(delay_count);
+		}
 	}
 }
 
