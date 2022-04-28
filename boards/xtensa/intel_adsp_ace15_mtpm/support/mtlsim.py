@@ -8,8 +8,9 @@ import os.path
 import subprocess
 import struct
 import types
+import random
+from datetime import datetime
 
-PORT = 40008 # Any port will work, this is conventional
 
 # Simulator doesn't implement the window mapping in PCI space, so read
 # directly out of HP-SRAM instead.
@@ -170,7 +171,23 @@ def write_sim_cfg(signed_image):
 async def _main(signed_image):
     # Open up a server socket to which the simulator will connect
     state.hello_event = asyncio.Event()
-    svr = await asyncio.start_server(sim_connection, port=PORT)
+    port_try_times = 0
+    available_port_found = False
+    global PORT
+    random.seed(datetime.now().second)
+    PORT = random.randint(40000, 50000)
+    while(port_try_times < 10 and not available_port_found):
+        try:
+            svr = await asyncio.start_server(sim_connection, port=PORT)
+            available_port_found = True
+            sys.stdout.write(f"ACE simulator comm port = {PORT}")
+            sys.stdout.flush()
+        except:
+            PORT = random.randint(40000, 50000)
+            port_try_times = port_try_times + 1
+    if(not available_port_found):
+        sys.stdout.write("Failed to find a port to communicate with ACE simulator")
+        sys.exit(0)
 
     # Launch the simulator, listening to its output.  Note that it
     # requires that it be run in its own directory.  Either
