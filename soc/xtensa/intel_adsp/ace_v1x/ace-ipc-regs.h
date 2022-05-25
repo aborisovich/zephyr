@@ -1,8 +1,8 @@
 /* Copyright (c) 2021 Intel Corporation
  * SPDX-License-Identifier: Apache-2.0
  */
-#ifndef ZEPHYR_SOC_INTEL_ADSP_CAVS_IPC_REGS_H
-#define ZEPHYR_SOC_INTEL_ADSP_CAVS_IPC_REGS_H
+#ifndef ZEPHYR_SOC_INTEL_ADSP_ACE_IPC_REGS_H
+#define ZEPHYR_SOC_INTEL_ADSP_ACE_IPC_REGS_H
 
 /* Inter Processor Communication: a distressingly heavyweight method
  * for directing interrupts at software running on other processors.
@@ -58,37 +58,26 @@
  * interrupt would remain active.
  */
 struct cavs_ipc {
-#ifdef CONFIG_SOC_SERIES_INTEL_CAVS_V15
-	uint32_t tdr;
-	uint32_t tdd;
-	uint32_t idr;
-	uint32_t idd;
-	uint32_t ctl;
-	uint32_t ida; /* Fakes for source compatibility; these ...  */
-	uint32_t tda; /* ... two registers don't exist in hardware. */
-#else
+#ifdef CONFIG_SOC_SERIES_INTEL_ACE1X
 	uint32_t tdr;
 	uint32_t tda;
-	uint32_t tdd;
-	uint32_t unused0;
+	uint32_t unused0[2];
 	uint32_t idr;
 	uint32_t ida;
-	uint32_t idd;
-	uint32_t unused1;
+	uint32_t unused1[2];
 	uint32_t cst;
 	uint32_t csr;
 	uint32_t ctl;
 	uint32_t cap; /* new in MTL... */
 	uint32_t unused2[52];
-	uint32_t tdd_mtl;
+	uint32_t tdd;
 	uint32_t unused3[31];
-	uint32_t idd_mtl;
+	uint32_t idd;
 #endif
 };
 
 #define CAVS_IPC_BUSY BIT(31)
 #define CAVS_IPC_DONE BIT(31)
-#define CAVS_IPC_IDD15_DONE BIT(30) /* v1.5 way to signal done */
 
 #define CAVS_IPC_CTL_TBIE BIT(0)
 #define CAVS_IPC_CTL_IDIE BIT(1) /* yesthatiswhattheyreallynamedit */
@@ -127,4 +116,4 @@ struct mtl_p2p_ipc {
 #define MTL_P2P_IPC ((volatile struct mtl_p2p_ipc *)0x70400)
 #define MTL_SB_IPC (*(volatile struct cavs_ipc *)0x4200)
 
-#endif /* ZEPHYR_SOC_INTEL_ADSP_CAVS_IPC_REGS_H */
+#endif /* ZEPHYR_SOC_INTEL_ADSP_ACE_IPC_REGS_H */

@@ -8,7 +8,7 @@
 #include <soc.h>
 #include <pm/pm.h>
 #include <ace_v1x-regs.h>
-#include <cavs-ipc-regs.h>
+#include <ace-ipc-regs.h>
 #include <cavs-mem.h>
 #include <sys/check.h>
 
