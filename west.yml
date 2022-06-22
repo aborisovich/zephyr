@@ -143,7 +143,8 @@ manifest:
       groups:
         - hal
     - name: hal_xtensa
-      revision: 0e577021bb66e644afd067cd9f7c71ab11b62b3d
+      url: https://github.com/aborisovich/hal_xtensa.git
+      revision: add-soc-overlay-for-intel_ace15_mtpm
       path: modules/hal/xtensa
       groups:
         - hal
