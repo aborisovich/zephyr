@@ -292,4 +292,71 @@
 			status = "okay";
 		};
 	};
+
+	registers {
+		/* This register provides the pointer to the DSP (Group 2) Core capability
+		 * function registers.
+		 * Implementation note: Group 2 is introduced for newer ACE IP generation
+		 * due to physical placement of the HP DSP Core shim control logic in
+		 * gated-HUB-HP domain, dictating a new register base address.
+		 */
+		hfdsp2ccp: hfdsp2ccp@34 {
+			reg = <0x34>;
+
+			/* This field contains the offset to the capability function. */
+			dspbrcp_ptr: ptr@0 {
+				reg = <0x00>;
+				value = <0x178d00>;
+			};
+		};
+
+		/* This register provides the pointer to the interrupt capability function registers. */
+		dfintcp: dfintcp@2c {
+			reg = <0x2c>;
+
+			/* This field contains the offset to the capability function. */
+			dxhipcie_ptr: ptr@0 {
+				reg = <0x00>;
+				value = <0x78840>;
+			};
+		};
+
+		/* This register provides the pointer to the timers / time stamping
+		 * capability function registers.
+		 */
+		dfttscp: dfttscp@6c {
+			reg = <0x6c>;
+
+			/* This field contains the offset to the capability function. */
+			dftts_ptr: ptr@0 {
+				reg = <0x00>;
+				value = <0x72000>;
+			};
+		};
+
+		/* This register provides the pointer to the L2 memory capability function registers. */
+		dfl2mcp: dfl2mcp@44 {
+			reg = <0x44>;
+
+			/* This field contains the offset to the capability function. */
+			dfl2mm_ptr: ptr@0 {
+				reg = <0x00>;
+				value = <0x71d00>;
+			};
+		};
+
+		/* 	This register provides the pointer to the L2 HP SRAM power management registers. */
+		dfl2hsbpmptr:dfl2hsbpmptr@10 {
+			reg = <0x10>;
+
+			/* This field contains the offset to the SRAM bank power management registers.
+			 * Value may be offset further based on HfL2SA.HSBPBI register field x 8 B,
+			 * or force to 0 if none allocated.
+			 */
+			ptr: ptr@0 {
+				reg = <0x00>;
+				value = <0x17A800>;
+			};
+		};
+	};
 };
