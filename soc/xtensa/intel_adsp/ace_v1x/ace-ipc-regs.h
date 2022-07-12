@@ -16,6 +16,15 @@
  */
 
 /**
+ * @brief Set TDA busy bit done.
+ *
+ * On ACE SoC family boards TDA bit 31 (BUSY) during IPC doorbell acknowledgment
+ * must be cleared (!), not set (in contrary to CAVS SoC family boards).
+ * This clears BUSY on the other side of the connection in IDR register.
+ */
+#define ACE_IPC_TDA1X_DONE BIT(0)
+
+/**
  * @brief ACE SoC family Intra DSP Communication.
  *
  * ACE SoC platform family provides an array of IPC endpoints to be used for

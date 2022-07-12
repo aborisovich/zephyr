@@ -4,8 +4,13 @@
  #include <zephyr/spinlock.h>
 
 #include <intel_adsp_ipc.h>
+#if defined(CONFIG_SOC_SERIES_INTEL_ACE1X)
+#include <ace-ipc-regs.h>
+#include <ace_v1x-regs.h>
+#elif defined(CONFIG_INTEL_ADSP_CAVS)
 #include <cavs-ipc-regs.h>
-
+#endif
+#include <autoconf.h>
 
 void intel_adsp_ipc_set_message_handler(const struct device *dev,
 	intel_adsp_ipc_handler_t fn, void *arg)
@@ -50,24 +55,31 @@ void z_intel_adsp_ipc_isr(const void *devarg)
 
 		regs->tdr = INTEL_ADSP_IPC_BUSY;
 		if (done && !IS_ENABLED(CONFIG_SOC_INTEL_CAVS_V15)) {
+#ifdef CONFIG_SOC_SERIES_INTEL_ACE1X
+			regs->tda = ACE_IPC_TDA1X_DONE;
+#else
 			regs->tda = INTEL_ADSP_IPC_DONE;
+#endif
 		}
 	}
 
-	/* Same signal, but on different bits in 1.5 */
-	bool done = IS_ENABLED(CONFIG_SOC_INTEL_CAVS_V15) ?
-		(regs->idd & CAVS_IPC_IDD15_DONE) : (regs->ida & INTEL_ADSP_IPC_DONE);
+	/* Same signal, but on different bits in CAVS1.5 */
+#ifdef CONFIG_SOC_INTEL_CAVS_V15
+	bool done = (regs->idd & CAVS_IPC_IDD15_DONE);
+#else
+	bool done = (regs->ida & INTEL_ADSP_IPC_DONE);
+#endif
 
 	if (done) {
 		if (devdata->done_notify != NULL) {
 			devdata->done_notify(dev, devdata->done_arg);
 		}
 		k_sem_give(&devdata->sem);
-		if (IS_ENABLED(CONFIG_SOC_INTEL_CAVS_V15)) {
-			regs->idd = CAVS_IPC_IDD15_DONE;
-		} else {
-			regs->ida = INTEL_ADSP_IPC_DONE;
-		}
+#ifdef CONFIG_SOC_INTEL_CAVS_V15
+		regs->idd = CAVS_IPC_IDD15_DONE;
+#else
+		regs->ida = INTEL_ADSP_IPC_DONE;
+#endif
 	}
 
 	k_spin_unlock(&devdata->lock, key);
@@ -84,12 +96,13 @@ int intel_adsp_ipc_init(const struct device *dev)
 	 * the other side!), then enable.
 	 */
 	config->regs->tdr = INTEL_ADSP_IPC_BUSY;
-	if (IS_ENABLED(CONFIG_SOC_INTEL_CAVS_V15)) {
-		config->regs->idd = CAVS_IPC_IDD15_DONE;
-	} else {
-		config->regs->ida = INTEL_ADSP_IPC_DONE;
-		config->regs->tda = INTEL_ADSP_IPC_DONE;
-	}
+#ifdef CONFIG_SOC_INTEL_CAVS_V15
+	config->regs->idd = CAVS_IPC_IDD15_DONE;
+#else
+	config->regs->ida = INTEL_ADSP_IPC_DONE;
+	config->regs->tda = INTEL_ADSP_IPC_DONE;
+#endif
+
 	config->regs->ctl |= (INTEL_ADSP_IPC_CTL_IDIE | INTEL_ADSP_IPC_CTL_TBIE);
 	return 0;
 }
@@ -98,7 +111,11 @@ void intel_adsp_ipc_complete(const struct device *dev)
 {
 	const struct intel_adsp_ipc_config *config = dev->config;
 
+#ifdef CONFIG_SOC_SERIES_INTEL_ACE1X
+	config->regs->tda = ACE_IPC_TDA1X_DONE;
+#else
 	config->regs->tda = INTEL_ADSP_IPC_DONE;
+#endif
 }
 
 bool intel_adsp_ipc_is_complete(const struct device *dev)
