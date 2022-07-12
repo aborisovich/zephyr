@@ -11,7 +11,7 @@ zephyr_library_include_directories(${ZEPHYR_BASE}/drivers)
 
 zephyr_library_sources_ifdef(CONFIG_INTEL_ADSP_CAVS soc.c)
 zephyr_library_sources(trace_out.c)
-zephyr_library_sources_ifdef(CONFIG_CAVS_IPC ipc.c)
+zephyr_library_sources_ifdef(CONFIG_INTEL_ADSP_IPC ipc.c)
 
 zephyr_library_sources_ifdef(
     CONFIG_INTEL_ADSP_CAVS

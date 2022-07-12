@@ -8,7 +8,7 @@
 #include <zephyr/kernel.h>
 #include <string.h>
 #include <ztest.h>
-#include <cavs_ipc.h>
+#include <intel_adsp_ipc.h>
 #include "tests.h"
 
 #define CHANNEL 6
@@ -28,14 +28,14 @@ void hda_log_hook(uint32_t written)
 
 	/*  Now send the next one */
 	do {
-		done = cavs_ipc_send_message(CAVS_HOST_DEV, IPCCMD_HDA_PRINT,
+		done = intel_adsp_ipc_send_message(INTEL_ADSP_IPC_HOST_DEV, IPCCMD_HDA_PRINT,
 					     (written << 8) | CHANNEL);
 	} while (!done);
 
 
 	/* Previous message may not be done yet, wait for that */
 	do {
-		done = cavs_ipc_is_complete(CAVS_HOST_DEV);
+		done = intel_adsp_ipc_is_complete(INTEL_ADSP_IPC_HOST_DEV);
 	} while (!done);
 
 
@@ -48,12 +48,12 @@ void test_hda_logger(void)
 
 	zassert_not_null(hda_log_backend, "Expected hda log backend");
 
-	hda_ipc_msg(CAVS_HOST_DEV, IPCCMD_HDA_RESET, CHANNEL, IPC_TIMEOUT);
-	hda_ipc_msg(CAVS_HOST_DEV, IPCCMD_HDA_CONFIG,
+	hda_ipc_msg(INTEL_ADSP_IPC_HOST_DEV, IPCCMD_HDA_RESET, CHANNEL, IPC_TIMEOUT);
+	hda_ipc_msg(INTEL_ADSP_IPC_HOST_DEV, IPCCMD_HDA_CONFIG,
 		    CHANNEL | (HOST_BUF_SIZE << 8), IPC_TIMEOUT);
 	adsp_hda_log_init(hda_log_hook, CHANNEL);
-	hda_ipc_msg(CAVS_HOST_DEV, IPCCMD_HDA_START, CHANNEL, IPC_TIMEOUT);
-	hda_ipc_msg(CAVS_HOST_DEV, IPCCMD_HDA_PRINT,
+	hda_ipc_msg(INTEL_ADSP_IPC_HOST_DEV, IPCCMD_HDA_START, CHANNEL, IPC_TIMEOUT);
+	hda_ipc_msg(INTEL_ADSP_IPC_HOST_DEV, IPCCMD_HDA_PRINT,
 		    ((HOST_BUF_SIZE*2) << 8) | CHANNEL, IPC_TIMEOUT);
 
 	printk("Testing log backend\n");
