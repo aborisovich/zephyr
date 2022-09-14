@@ -1,0 +1,55 @@
+name: Build Intel boards
+
+on:
+  pull_request:
+    types: [synchronize, opened, reopened, labeled]
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+    working-directory: workspace
+
+jobs:
+  build_SOF_cleanup:
+    if: contains(github.event.pull_request.labels.*.name, 'Intel ADSP')
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.6.0
+        with:
+          access_token: ${{ github.token }}
+
+  build_SOF:
+    if: contains(github.event.pull_request.labels.*.name, 'Intel ADSP')
+    runs-on: ubuntu-20.04
+    needs: build_SOF_cleanup
+    strategy:
+      fail-fast: false
+      matrix:
+        platforms: [
+          -i IPC4 tgl,
+          mtl
+        ]
+
+    steps:
+      - name: Checkout Zephyr
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 10
+          path: ./workspace/zephyr
+
+      - name: Install west
+        run: pip3 install west
+
+      - name: Checkout SOF main
+        run: west init -m https://github.com/thesofproject/sof
+
+      - name: West update
+        run: west update
+
+      - name: Run SOF application build
+        # edit URL and set @master branch
+        uses: aborisovich/sof/actions/zephyr-docker-build@build-sof-in-zephyr
+        with:
+          platform: ${{ matrix.platforms }}
