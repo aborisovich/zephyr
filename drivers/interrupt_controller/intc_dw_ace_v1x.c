@@ -7,12 +7,15 @@
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
 #include <zephyr/irq_nextlevel.h>
+#include <zephyr/arch/xtensa/irq.h>
 #ifdef CONFIG_DYNAMIC_INTERRUPTS
 #include <zephyr/sw_isr_table.h>
 #endif
 #include <zephyr/drivers/interrupt_controller/dw_ace_v1x.h>
 #include <soc.h>
 #include <ace_v1x-regs.h>
+#include <zephyr/irq.h>
+#include "intc_dw.h"
 
 /* MTL device interrupts are all packed into a single line on Xtensa's
  * architectural IRQ 4 (see below), run by a Designware interrupt

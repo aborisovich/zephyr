@@ -14,6 +14,7 @@ LOG_MODULE_REGISTER(LOG_DOMAIN);
 #include <stdint.h>
 #include <zephyr/spinlock.h>
 #include <zephyr/devicetree.h>
+#include <zephyr/kernel.h>
 
 #include <zephyr/drivers/dai.h>
 

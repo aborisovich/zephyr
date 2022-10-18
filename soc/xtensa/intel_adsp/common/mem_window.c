@@ -10,6 +10,7 @@
 #include <adsp_shim.h>
 #include <mem_window.h>
 #include <soc.h>
+#include <zephyr/arch/cpu.h>
 
 /* host windows */
 #define DMWBA(win_base) (win_base + 0x0)

@@ -54,8 +54,9 @@ typedef bool (*intel_adsp_ipc_handler_t)(const struct device *dev, void *arg,
  *
  * @param dev IPC device.
  * @param arg Registered argument from intel_adsp_ipc_set_done_handler().
+ * @return True if external IPC completion will be done, otherwise false.
  */
-typedef void (*intel_adsp_ipc_done_t)(const struct device *dev, void *arg);
+typedef bool (*intel_adsp_ipc_done_t)(const struct device *dev, void *arg);
 
 struct intel_adsp_ipc_data {
 	struct k_sem sem;
