@@ -7,6 +7,10 @@
 #include <intel_adsp_ipc_devtree.h>
 #include <zephyr/kernel.h>
 #include <zephyr/device.h>
+#ifdef CONFIG_PM_DEVICE_RUNTIME
+#include <zephyr/pm/device.h>
+#include <zephyr/pm/device_runtime.h>
+#endif
 
 struct intel_adsp_ipc_config {
 	volatile struct intel_adsp_ipc *regs;
@@ -160,5 +164,43 @@ bool intel_adsp_ipc_send_message(const struct device *dev,
  */
 bool intel_adsp_ipc_send_message_sync(const struct device *dev,
 	uint32_t data, uint32_t ext_data, k_timeout_t timeout);
+
+#ifdef CONFIG_PM_DEVICE_RUNTIME
+int ipc_pm_action(const struct device *dev, enum pm_device_action action);
+
+typedef int (*intel_adsp_ipc_resume_handler_t)(const struct device *dev, void *arg);
+
+typedef int (*intel_adsp_ipc_suspend_handler_t)(const struct device *dev, void *arg);
+
+/**
+ * @brief Registers wake callback handler used to wake device from sleep.
+ *
+ * @param dev IPC device.
+ * @param fn Callback function.
+ * @param arg Value to pass as the "arg" parameter to the function.
+ */
+void intel_adsp_ipc_set_resume_handler(const struct device *dev,
+	intel_adsp_ipc_resume_handler_t fn, void *arg);
+
+/**
+ * @brief Registers suspend callback handler used to put device to sleep.
+ *
+ * @param dev IPC device.
+ * @param fn Callback function.
+ * @param arg Value to pass as the "arg" parameter to the function.
+ */
+void intel_adsp_ipc_set_suspend_handler(const struct device *dev,
+	intel_adsp_ipc_suspend_handler_t fn, void *arg);
+
+struct ipc_control_driver_api {
+	intel_adsp_ipc_resume_handler_t resume_fn;
+	void *resume_fn_args;
+	intel_adsp_ipc_suspend_handler_t suspend_fn;
+	void *suspend_fn_args;
+};
+
+#else /* CONFIG_PM_DEVICE_RUNTIME */
+#define ipc_control_driver_api NULL
+#endif /* CONFIG_PM_DEVICE_RUNTIME */
 
 #endif /* ZEPHYR_INCLUDE_INTEL_ADSP_IPC_H */

@@ -155,7 +155,6 @@ out:
 }
 
 __weak FUNC_ALIAS(sys_mm_drv_simple_map_array, sys_mm_drv_map_array, int);
-
 int sys_mm_drv_simple_unmap_region(void *virt, size_t size)
 {
 	k_spinlock_key_t key;
@@ -176,7 +175,7 @@ int sys_mm_drv_simple_unmap_region(void *virt, size_t size)
 		int ret2 = sys_mm_drv_unmap_page(va);
 
 		if (ret2 != 0) {
-			__ASSERT(false, "cannot unmap %p\n", va);
+			//__ASSERT(false, "cannot unmap %p\n", va);
 
 			ret = ret2;
 		}

@@ -7,7 +7,10 @@
 #include <adsp_ipc_regs.h>
 #include <adsp_interrupt.h>
 #include <zephyr/irq.h>
+#include <zephyr/pm/state.h>
+#include <zephyr/pm/pm.h>
 
+extern bool is_after_d3;
 
 void intel_adsp_ipc_set_message_handler(const struct device *dev,
 	intel_adsp_ipc_handler_t fn, void *arg)
@@ -34,6 +37,7 @@ void intel_adsp_ipc_set_done_handler(const struct device *dev,
 void z_intel_adsp_ipc_isr(const void *devarg)
 {
 	const struct device *dev = devarg;
+
 	const struct intel_adsp_ipc_config *config = dev->config;
 	struct intel_adsp_ipc_data *devdata = dev->data;
 
@@ -188,12 +192,98 @@ static int dt_init(const struct device *dev)
 	return intel_adsp_ipc_init(dev);
 }
 
+#ifdef CONFIG_PM
+
+void intel_adsp_ipc_set_resume_handler(const struct device *dev,
+	intel_adsp_ipc_resume_handler_t fn, void *arg)
+{
+	struct ipc_control_driver_api *api =
+		(struct ipc_control_driver_api *)dev->api;
+	struct intel_adsp_ipc_data *devdata = dev->data;
+	k_spinlock_key_t key = k_spin_lock(&devdata->lock);
+
+	api->resume_fn = fn;
+	api->resume_fn_args = arg;
+
+	k_spin_unlock(&devdata->lock, key);
+}
+
+void intel_adsp_ipc_set_suspend_handler(const struct device *dev,
+	intel_adsp_ipc_suspend_handler_t fn, void *arg)
+{
+	struct ipc_control_driver_api *api =
+		(struct ipc_control_driver_api *)dev->api;
+	struct intel_adsp_ipc_data *devdata = dev->data;
+	k_spinlock_key_t key = k_spin_lock(&devdata->lock);
+
+	api->suspend_fn = fn;
+	api->suspend_fn_args = arg;
+
+	k_spin_unlock(&devdata->lock, key);
+}
+
+// this switch performs power actions control for ipc device
+//
+int ipc_pm_action(const struct device *dev, enum pm_device_action action)
+{
+	const struct ipc_control_driver_api *api =
+		(const struct ipc_control_driver_api *)dev->api;
+
+	volatile bool stop = true;
+	int ret = 0;
+
+	/* All device pm is handled during resume and suspend */
+	switch (action) {
+	case PM_DEVICE_ACTION_SUSPEND:
+		pm_device_state_lock(dev);
+		pm_device_busy_set(dev);
+		if(api->suspend_fn) {
+			ret = api->suspend_fn(dev, api->suspend_fn_args);
+		}
+		pm_device_busy_clear(dev);
+		pm_device_state_unlock(dev);
+		return ret;
+		break;
+	case PM_DEVICE_ACTION_RESUME:
+		pm_device_state_lock(dev);
+		pm_device_busy_set(dev);
+		irq_enable(DT_IRQN(INTEL_ADSP_IPC_HOST_DTNODE));
+		ace_ipc_intc_unmask();
+		intel_adsp_ipc_init(dev);
+		if (api->resume_fn)
+			ret = api->resume_fn(dev, api->resume_fn_args);
+		pm_device_busy_clear(dev);
+		pm_device_state_unlock(dev);
+		return ret;
+		break;
+	case PM_DEVICE_ACTION_TURN_OFF:
+		break;
+	case PM_DEVICE_ACTION_TURN_ON:
+		break;
+	default:
+		return 0;
+	}
+
+	return 0;
+}
+
+static const struct ipc_control_driver_api ipc_control_api = {
+	.resume_fn = NULL,
+	.resume_fn_args = NULL,
+	.suspend_fn = NULL,
+	.suspend_fn_args = NULL
+};
+
+#endif /* CONFIG_PM_DEVICE_RUNTIME */
+
 static const struct intel_adsp_ipc_config ipc_host_config = {
 	.regs = (void *)INTEL_ADSP_IPC_REG_ADDRESS,
 };
 
 static struct intel_adsp_ipc_data ipc_host_data;
 
-DEVICE_DT_DEFINE(INTEL_ADSP_IPC_HOST_DTNODE, dt_init, NULL, &ipc_host_data, &ipc_host_config,
-		 PRE_KERNEL_2, 0, NULL);
-#endif
+PM_DEVICE_DT_DEFINE(INTEL_ADSP_IPC_HOST_DTNODE, ipc_pm_action);
+DEVICE_DT_DEFINE(INTEL_ADSP_IPC_HOST_DTNODE, dt_init, PM_DEVICE_DT_GET(INTEL_ADSP_IPC_HOST_DTNODE), &ipc_host_data, &ipc_host_config,
+		 PRE_KERNEL_2, 0, &ipc_control_api);
+
+#endif /* DT_NODE_EXISTS(INTEL_ADSP_IPC_HOST_DTNODE) */
