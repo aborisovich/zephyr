@@ -286,7 +286,7 @@ static int intel_adsp_gpdma_enable(const struct device *dev)
 }
 #endif
 
-int intel_adsp_gpdma_init(const struct device *dev)
+static int intel_adsp_gpdma_power_on(const struct device *dev)
 {
 	const struct intel_adsp_gpdma_cfg *const dev_cfg = dev->config;
 	int ret;
@@ -294,11 +294,6 @@ int intel_adsp_gpdma_init(const struct device *dev)
 #ifdef CONFIG_SOC_SERIES_INTEL_ACE
 	/* Power up */
 	ret = intel_adsp_gpdma_enable(dev);
-
-	if (ret == 0) {
-		pm_device_init_suspended(dev);
-		ret = pm_device_runtime_enable(dev);
-	}
 
 	if (ret != 0) {
 		LOG_ERR("%s: dma %s failed to initialize", __func__,
@@ -368,12 +363,28 @@ int intel_adsp_gpdma_get_attribute(const struct device *dev, uint32_t type, uint
 	return 0;
 }
 
+int intel_adsp_gpdma_init(const struct device *dev)
+{
+	struct dw_dma_dev_data *const dev_data = dev->data;
+
+	/* Setup context and atomics for channels */
+	dev_data->dma_ctx.magic = DMA_MAGIC;
+	dev_data->dma_ctx.dma_channels = DW_MAX_CHAN;
+	dev_data->dma_ctx.atomic = dev_data->channels_atomic;
+#if CONFIG_PM_DEVICE
+	pm_device_init_off(dev);
+	return pm_device_runtime_enable(dev);
+#else
+	return intel_adsp_gpdma_power_on(dev);
+#endif
+}
 #ifdef CONFIG_PM_DEVICE
 static int gpdma_pm_action(const struct device *dev, enum pm_device_action action)
 {
 	switch (action) {
-	case PM_DEVICE_ACTION_SUSPEND:
 	case PM_DEVICE_ACTION_RESUME:
+		return intel_adsp_gpdma_power_on(dev);
+	case PM_DEVICE_ACTION_SUSPEND:
 	case PM_DEVICE_ACTION_TURN_ON:
 	case PM_DEVICE_ACTION_TURN_OFF:
 		break;
