@@ -2144,11 +2144,8 @@ static int ssp_pm_action(const struct device *dev, enum pm_device_action action)
 
 static int ssp_init(const struct device *dev)
 {
-	int ret;
-
-	pm_device_init_suspended(dev);
-	ret = pm_device_runtime_enable(dev);
-	return ret;
+	pm_device_init_off(dev);
+	return pm_device_runtime_enable(dev);
 }
 
 static struct dai_driver_api dai_intel_ssp_api_funcs = {
