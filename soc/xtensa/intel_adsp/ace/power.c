@@ -14,6 +14,7 @@
 #include <adsp_memory.h>
 #include <adsp_imr_layout.h>
 #include <zephyr/drivers/mm/mm_drv_intel_adsp_mtl_tlb.h>
+#include <zephyr/drivers/timer/system_timer.h>
 
 #define LPSRAM_MAGIC_VALUE      0x13579BDF
 #define LPSCTL_BATTR_MASK       GENMASK(16, 12)
@@ -315,6 +316,10 @@ __weak void pm_state_exit_post_ops(enum pm_state state, uint8_t substate_id)
 		soc_cpus_active[cpu] = true;
 		z_xtensa_cache_flush_inv_all();
 		z_xt_ints_on(core_desc[cpu].intenable);
+
+#ifdef CONFIG_ADSP_IMR_CONTEXT_SAVE
+		sys_clock_idle_exit();
+#endif /* CONFIG_ADSP_IMR_CONTEXT_SAVE */
 	} else if (state == PM_STATE_RUNTIME_IDLE) {
 		if (cpu != 0) {
 			/* NOTE: HW should support dynamic power gating on secondary cores.

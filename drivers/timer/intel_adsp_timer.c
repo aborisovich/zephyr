@@ -13,6 +13,9 @@
 #include <adsp_shim.h>
 #include <adsp_interrupt.h>
 #include <zephyr/irq.h>
+#ifdef CONFIG_PM_DEVICE
+#include <zephyr/pm/device.h>
+#endif /* CONFIG_PM_DEVICE */
 
 #define DT_DRV_COMPAT intel_adsp_timer
 
@@ -59,6 +62,12 @@ static uint64_t last_count;
 #if defined(CONFIG_TEST)
 const int32_t z_sys_timer_irq_for_test = TIMER_IRQ; /* See tests/kernel/context */
 #endif
+
+/**
+ * @brief Used to alternate driver initialization when initialized
+ * during boot or after idle state that restores context.
+ */
+static bool sys_clock_driver_reinit;
 
 static void set_compare(uint64_t time)
 {
@@ -217,13 +226,29 @@ void smp_timer_init(void)
 static int sys_clock_driver_init(const struct device *dev)
 {
 	uint64_t curr = count();
-
-	IRQ_CONNECT(TIMER_IRQ, 0, compare_isr, 0, 0);
+	if (!sys_clock_driver_reinit)
+		IRQ_CONNECT(TIMER_IRQ, 0, compare_isr, 0, 0);
 	set_compare(curr + CYC_PER_TICK);
 	last_count = curr;
 	irq_init();
 	return 0;
 }
 
-SYS_INIT(sys_clock_driver_init, PRE_KERNEL_2,
-	 CONFIG_SYSTEM_CLOCK_INIT_PRIORITY);
+#ifdef CONFIG_PM_DEVICE
+/**
+ * @brief Reinitializes device after power state change.
+ * Should be run on Primary Core only.
+ */
+void sys_clock_idle_exit(void)
+{
+	if(arch_curr_cpu()->id != 0)
+		return;
+	pm_device_state_lock(DEVICE_DT_INST_GET(0));
+	sys_clock_driver_reinit = true;
+	sys_clock_driver_init(DEVICE_DT_INST_GET(0));
+	pm_device_state_unlock(DEVICE_DT_INST_GET(0));
+}
+#endif /* CONFIG_PM_DEVICE */
+
+DEVICE_DT_INST_DEFINE(0, sys_clock_driver_init, NULL, NULL, NULL,
+		 PRE_KERNEL_2, CONFIG_SYSTEM_CLOCK_INIT_PRIORITY, NULL);
